@@ -1,7 +1,6 @@
 # Yolov8 Real-time Inference using Streamlit
-A web interface for real-time yolo inference using streamlit. It supports CPU and GPU inference, supports both images and videos and uploading your own custom models.
+A web interface for real-time yolo inference using streamlit. It supports CPU and GPU inference, supports both images and videos.
 
-<img src="output.gif" alt="demo of the dashboard" width="800"/>
 
 ### [Live Demo](https://valengou-yolov8-app-p7kyf7.streamlit.app/)
 
@@ -25,8 +24,8 @@ After cloning the repo:
 3. Add sample video to `data/sample_videos` and call it `sample.mp4` or change name in the code.
 4. Add the model file to `models/` and change `cfg_model_path` to its path.
 ```bash
-git clone https://github.com/moaaztaha/Yolo-Interface-using-Streamlit
-cd Yolo-Interface-using-Streamlit
+git clone https://github.com/valengou/yolov8
+cd yolov8
 streamlit run app.py
 ```
 
@@ -34,4 +33,3 @@ streamlit run app.py
 - [] Allow model upload (file / url).
 - [] resizing video frames for faster processing.
 - [ ] batch processing, processes the whole video and then show the results.
-

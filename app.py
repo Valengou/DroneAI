@@ -8,6 +8,7 @@ import time
 import ultralytics
 import numpy as np
 
+from pytube import YouTube
 from ultralytics import YOLO
 
 from IPython.display import display, Image
@@ -93,13 +94,20 @@ def image_input(data_src):
 def video_input(data_src,confidence):
     f = None
     st.title("Video Frame Extraction")
+    desired_fps=st.slider('FPS', min_value=1, max_value=500, value=10)
     if data_src == 'Sample data':
         f = "data/sample_videos/sample_video.mp4"
-    else:
+    elif data_src == 'Upload your own data':
         f = st.file_uploader("Upload a video")
+    else:
+        url = st.text_input("Enter the YouTube video URL")
+        if url:
+            video = YouTube(url)
+            stream = video.streams.get_highest_resolution()
+            f = stream.download(skip_existing=True)
     if f is not None:
         tfile = tempfile.NamedTemporaryFile(delete=False)
-        if data_src == 'Sample data':
+        if data_src == 'Sample data' or data_src == 'URL':
             vf = cv2.VideoCapture(f)
         else:
             tfile.write(f.read())
@@ -107,7 +115,19 @@ def video_input(data_src,confidence):
 
         stframe = st.empty()
 
+        # Set the desired FPS here
+
+
+        # Calculate the time to wait between frames
+        frame_time = int(1000 / desired_fps)
+
+        # Get the tick frequency
+        freq = cv2.getTickFrequency()
+
         while vf.isOpened():
+            # Get the current time in ticks
+            start_time = cv2.getTickCount()
+
             ret, frame = vf.read()
             # Stop the loop if the video ends or there is an error
             if not ret:
@@ -121,6 +141,15 @@ def video_input(data_src,confidence):
             # Display the frame
             stframe.image(frame)
 
+            # Calculate the time it took to process the frame
+            elapsed_time = (cv2.getTickCount() - start_time) / freq
+
+            # Calculate the remaining time to wait
+            remaining_time = max(0, frame_time - int(elapsed_time * 1000))
+
+            # Wait for the remaining time
+            cv2.waitKey(remaining_time)
+
         vf.release()
 
 
@@ -129,12 +158,12 @@ def main():
     # global variables
     global model, img, cfg_model_path
     st.title("Concrecte Crack Recognition Model")
-    confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.45)
-    data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data'])
+    confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.25)
+    data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data','URL'])
     input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
+
     if input_option== 'image':
         image = np.asarray(image_input(data_src))
-        labels=model.names
 
         if image.any():
             col1, col2 = st.columns(2)
@@ -153,21 +182,24 @@ def main():
                 edges=cv2.imwrite("edges.jpg", edges_color)
                 edges = Image.open('edges.jpg')
 
-                results = model.predict(edges_color)
+                results1 = model.predict(edges_color)
 
-                #results = model.predict(image)
+                results = model.predict(image)
                 #st.text(results)
                 #st.text(results[0].boxes.cls)
                 result_size=results[0].boxes.boxes.size()[0]
                 if result_size>0:
                     #label=labels[int(results[0].boxes.cls)]
                     img =plot_bboxes(image, results[0].boxes.boxes,  conf=confidence)
+                    img1 =plot_bboxes(edges_color, results1[0].boxes.boxes,  conf=confidence)
                     st.image(img, caption="Model prediction")
-                    st.image(edges)
+                    edge_crack = st.radio("Crack edge: ", ['Hide', 'Show'])
+                    if edge_crack== 'Show':
+                        st.image(img1)
                     st.text('We have found a crack')
                 else:
                     st.image(image, caption='No crack found')
-                    st.image(edges)
+                    #st.image(edges)
     else:
          video_input(data_src,confidence)
 ### FOOTER
