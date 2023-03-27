@@ -11,7 +11,7 @@ import numpy as np
 from ultralytics import YOLO
 
 from IPython.display import display, Image
-import supervision as svp #SEE https://www.youtube.com/watch?v=Mi9iHFd0_Bo to work with supervision package
+#import supervision as svp #SEE https://www.youtube.com/watch?v=Mi9iHFd0_Bo to work with supervision package
 
 model = YOLO("models/yolov8concretecrack.pt")
 
