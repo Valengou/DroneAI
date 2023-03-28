@@ -14,7 +14,7 @@ from ultralytics import YOLO
 from IPython.display import display, Image
 #import supervision as svp #SEE https://www.youtube.com/watch?v=Mi9iHFd0_Bo to work with supervision package
 
-model = YOLO("models/yolov8concretecrack.pt")
+model = YOLO("models/yolov8concretecrackV2.pt")
 
 def box_label(image, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
   lw = max(round(sum(image.shape) / 2 * 0.003), 2)
@@ -94,7 +94,7 @@ def image_input(data_src):
 def video_input(data_src,confidence):
     f = None
     st.title("Video Frame Extraction")
-    desired_fps=st.slider('FPS', min_value=1, max_value=500, value=10)
+    desired_fps=st.slider('Frames Per Seccond', min_value=0.1, max_value=2.0, value=1.0,step=0.1)
     if data_src == 'Sample data':
         f = "data/sample_videos/sample_video.mp4"
     elif data_src == 'Upload your own data':
