@@ -157,10 +157,19 @@ def video_input(data_src,confidence):
 def main():
     # global variables
     global model, img, cfg_model_path
-    st.title("Concrecte Crack Recognition Model")
+    st.title("Concrete Crack Recognition Model")
+    st.write('''This web app allows users to upload images or videos of concrete surfaces and get a
+            visual feedback on the location and severity of cracks.
+            The app uses a computer vision model that is trained on a large dataset of cracked
+            and non-cracked concrete images. The model is based on YOLOv8 Model.
+            The app can be useful for structural health monitoring and inspection of bridges,
+            structures, walls, pavements, and other sensitive surfaces.''')
+    st.text('You can upload elements using the sidebar at the left')
     confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.25)
     data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data','URL'])
     input_option = st.sidebar.radio("Select input type: ", ['image', 'video'])
+    if data_src=='Sample data':
+        st.subheader('Sample data')
 
     if input_option== 'image':
         image = np.asarray(image_input(data_src))
