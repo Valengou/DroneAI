@@ -14,7 +14,7 @@ from ultralytics import YOLO
 from IPython.display import display, Image
 #import supervision as svp #SEE https://www.youtube.com/watch?v=Mi9iHFd0_Bo to work with supervision package
 
-model = YOLO("models/yolov8concretecrackV2.pt")
+model = YOLO("models/droneai.pt")
 
 def box_label(image, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
   lw = max(round(sum(image.shape) / 2 * 0.003), 2)
@@ -38,7 +38,7 @@ def plot_bboxes(image, boxes, labels=[], colors=[], score=True, conf=None):
   #Define COCO Labels
   if labels == []: # ME FALTA CAMBIAR LOS LABEL NAMES DE LAS DIFERENTES CRACKS
     label_names=model.names
-    labels = {0: label_names[0], 1: label_names[1], 2: label_names[2],3: label_names[3]}
+    labels = {0: label_names[0], 1: label_names[1], 2: label_names[2]}
   #Define colors
   if colors == []:
     #colors = [(6, 112, 83), (253, 246, 160), (40, 132, 70), (205, 97, 162), (149, 196, 30), (106, 19, 161), (127, 175, 225), (115, 133, 176), (83, 156, 8), (182, 29, 77), (180, 11, 251), (31, 12, 123), (23, 6, 115), (167, 34, 31), (176, 216, 69), (110, 229, 222), (72, 183, 159), (90, 168, 209), (195, 4, 209), (135, 236, 21), (62, 209, 199), (87, 1, 70), (75, 40, 168), (121, 90, 126), (11, 86, 86), (40, 218, 53), (234, 76, 20), (129, 174, 192), (13, 18, 254), (45, 183, 149), (77, 234, 120), (182, 83, 207), (172, 138, 252), (201, 7, 159), (147, 240, 17), (134, 19, 233), (202, 61, 206), (177, 253, 26), (10, 139, 17), (130, 148, 106), (174, 197, 128), (106, 59, 168), (124, 180, 83), (78, 169, 4), (26, 79, 176), (185, 149, 150), (165, 253, 206), (220, 87, 0), (72, 22, 226), (64, 174, 4), (245, 131, 96), (35, 217, 142), (89, 86, 32), (80, 56, 196), (222, 136, 159), (145, 6, 219), (143, 132, 162), (175, 97, 221), (72, 3, 79), (196, 184, 237), (18, 210, 116), (8, 185, 81), (99, 181, 254), (9, 127, 123), (140, 94, 215), (39, 229, 121), (230, 51, 96), (84, 225, 33), (218, 202, 139), (129, 223, 182), (167, 46, 157), (15, 252, 5), (128, 103, 203), (197, 223, 199), (19, 238, 181), (64, 142, 167), (12, 203, 242), (69, 21, 41), (177, 184, 2), (35, 97, 56), (241, 22, 161)]
@@ -136,7 +136,7 @@ def video_input(data_src,confidence):
             # Pass the frame to your YOLO model here for inference
             results = model.predict(frame)
             #label=labels[int(results[0].boxes.cls)]
-            frame =plot_bboxes(frame, results[0].boxes.boxes,  conf=confidence)
+            frame =plot_bboxes(frame, results[0].boxes.data,  conf=confidence)
 
             # Display the frame
             stframe.image(frame)
@@ -157,13 +157,13 @@ def video_input(data_src,confidence):
 def main():
     # global variables
     global model, img, cfg_model_path
-    st.title("Concrete Crack Recognition Model")
-    st.write('''This web app allows users to upload images or videos of concrete surfaces and get a
-            visual feedback on the location and severity of cracks.
-            The app uses a computer vision model that is trained on a large dataset of cracked
-            and non-cracked concrete images. The model is based on YOLOv8 Model.
-            The app can be useful for structural health monitoring and inspection of bridges,
-            structures, walls, pavements, and other sensitive surfaces.''')
+    st.title("Power Grid Faults Recognition Model")
+    st.write('''This web application enables users to upload visual media of
+             power grid inspections and utilizes a computer vision model to detect faults.
+             The model, based on YOLOv8, has been trained on a comprehensive dataset
+             of both damaged and undamaged insulator images. This application can serve
+             as a valuable tool for monitoring power grids and inspecting various
+             components such as posts, cables, and insulators.''')
     st.text('You can upload elements using the sidebar at the left')
     confidence = st.sidebar.slider('Confidence', min_value=0.1, max_value=1.0, value=.25)
     data_src = st.sidebar.radio("Select input source: ", ['Sample data', 'Upload your own data','URL'])
@@ -179,35 +179,15 @@ def main():
             with col1:
                 st.image(image, caption="Selected Image")
             with col2:
-                # Convert to grayscale
-                gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-                # Define range of black color in grayscale
-                lower_black = np.array([0])
-                upper_black = np.array([150])
-                mask = cv2.inRange(gray, lower_black, upper_black)
-                edges = cv2.Canny(mask, 100, 200)
-                edges_color = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
-                edges=cv2.imwrite("edges.jpg", edges_color)
-                edges = Image.open('edges.jpg')
-
-                results1 = model.predict(edges_color)
-
                 results = model.predict(image)
-                #st.text(results)
-                #st.text(results[0].boxes.cls)
-                result_size=results[0].boxes.boxes.size()[0]
+                result_size=results[0].boxes.data.size()[0]
                 if result_size>0:
                     #label=labels[int(results[0].boxes.cls)]
-                    img =plot_bboxes(image, results[0].boxes.boxes,  conf=confidence)
-                    img1 =plot_bboxes(edges_color, results1[0].boxes.boxes,  conf=confidence)
+                    img =plot_bboxes(image, results[0].boxes.data,  conf=confidence)
                     st.image(img, caption="Model prediction")
-                    edge_crack = st.radio("Crack edge: ", ['Hide', 'Show'])
-                    if edge_crack== 'Show':
-                        st.image(img1)
-                    st.text('We have found a crack')
+                    st.text('We have found a defect')
                 else:
-                    st.image(image, caption='No crack found')
+                    st.image(image, caption='No defect found')
                     #st.image(edges)
     else:
          video_input(data_src,confidence)
